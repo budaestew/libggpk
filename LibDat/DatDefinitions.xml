@@ -24,7 +24,7 @@
 			<value id="Unknown5" type="int"/>
 			<value id="Unknown6" type="int"/>
 		</record>
-		<record id="Achievements" length="22">
+		<record id="Achievements" length="23">
 			<pointer id="Id" type="String"/>
 			<pointer id="Description" type="String" isUser="1"/>
 			<value id="Unknown2" type="int"/>
@@ -32,6 +32,7 @@
 			<value id="Unknown4" type="int"/>
 			<value id="Flag0" type="bool"/>
 			<value id="Flag1" type="bool"/>
+			<value id="Flag2" type="bool"/>
 		</record>
 		<record id="AchievementSets" length="0"/>
 		<record id="ActiveSkills" length="70">
@@ -402,7 +403,7 @@
 			<value id="f5" type="int"/>
 			<value id="f6" type="int"/>
 		</record>
-		<record id="DexIntMissions" length="47">
+		<record id="DexIntMissions" length="48">
 			<pointer id="Id" type="String"/>
 			<value id="Unknown1" type="int"/>
 			<value id="Flag0" type="bool"/>
@@ -419,6 +420,7 @@
 			<value id="Unknown9" type="int"/>
 			<value id="Flag6" type="bool"/>
 			<value id="Unknown10" type="int"/>
+			<value id="Flag7" type="bool"/>
 		</record>
 		<record id="DexIntMissionTargets" length="20">
 			<value id="Unknown0" type="int"/>
@@ -427,7 +429,7 @@
 			<value id="Unknown3" type="int"/>
 			<value id="Unknown4" type="int"/>
 		</record>
-		<record id="DexMissionMods" length="26">
+		<record id="DexMissionMods" length="27">
 			<pointer id="Id" type="String"/>
 			<value id="Unknown1" type="int"/>
 			<value id="Unknown2" type="int"/>
@@ -436,6 +438,7 @@
 			<value id="Flag1" type="bool"/>
 			<value id="Unknown4" type="int"/>
 			<value id="Unknown5" type="int"/>
+			<value id="Flag2" type="bool"/>
 		</record>
 		<record id="DexMissionMonsters" length="32">
 			<pointer id="Id" type="String"/>
@@ -543,7 +546,7 @@
 			<pointer id="Id" type="String"/>
 			<value id="Value" type="int"/>
 		</record>
-		<record id="GrantedEffects" length="38">
+		<record id="GrantedEffects" length="42">
 			<pointer id="Index0" type="String"/>
 			<value id="Flag0" type="bool"/>
 			<pointer id="Data0" type="UInt32List"/>
@@ -552,6 +555,7 @@
 			<pointer id="Data1" type="UInt32List"/>
 			<pointer id="Data2" type="UInt32List"/>
 			<value id="Flag1" type="bool"/>
+			<value id="Unknown4" type="int"/>
 		</record>
 		<record id="GrantedEffectsPerLevel" length="133">
 			<value id="Unknown0" type="Int64"/>
@@ -796,9 +800,10 @@
 			<value id="Unknown7" type="int"/>
 			<value id="Unknown8" type="int"/>
 		</record>
-		<record id="MicrotransactionPortalVariations" length="12">
+		<record id="MicrotransactionPortalVariations" length="16">
 			<value id="ItemKey" type="Int64"/>
 			<pointer id="AnimatedObject" type="String"/>
+			<value id="Unknown1" type="int"/>
 		</record>
 		<record id="MicrotransactionSocialFrameVariations" length="8">
 			<value id="ItemKey" type="Int64"/>
@@ -1205,7 +1210,7 @@
 			<pointer id="Unknown4" type="String"/>
 			<pointer id="Unknown5" type="String"/>
 		</record>
-		<record id="ShopItem" length="69">
+		<record id="ShopItem" length="73">
 			<pointer id="Id" type="String"/>
 			<pointer id="Name" type="String" isUser="1"/>
 			<pointer id="Description" type="String" isUser="1"/>
@@ -1220,6 +1225,7 @@
 			<pointer id="LargeArtPath" type="String"/>
 			<value id="Unknown15" type="int"/>
 			<pointer id="DailyDealArtPath" type="String"/>
+			<value id="Unknown16" type="int"/>
 		</record>
 		<record id="ShopPaymentPackage" length="43">
 			<pointer id="Id" type="String"/>
@@ -1281,7 +1287,7 @@
 			<pointer id="Sound" type="String"/>
 		</record>
 		<record id="StatDescriptionFunctions" length="0"/>
-		<record id="Stats" length="27">
+		<record id="Stats" length="31">
 			<pointer id="Id" type="String"/>
 			<value id="Flag0" type="bool"/>
 			<value id="Flag1" type="bool"/>
@@ -1294,6 +1300,7 @@
 			<value id="StatKey1" type="int"/>
 			<value id="StatKey2" type="int"/>
 			<value id="Flag7" type="bool"/>
+			<value id="Unknown3" type="int"/>
 		</record>
 		<record id="StatSemantics" length="0"/>
 		<record id="StrDexIntMissionExtraRequirement" length="39">
@@ -1330,7 +1337,7 @@
 			<value id="Unknown12" type="int"/>
 			<value id="Unknown13" type="int"/>
 		</record>
-		<record id="StrDexMissions" length="60">
+		<record id="StrDexMissions" length="72">
 			<pointer id="Index0" type="String"/>
 			<value id="Unknown1" type="int"/>
 			<value id="Unknown2" type="int"/>
@@ -1345,6 +1352,9 @@
 			<value id="Unknown13" type="int"/>
 			<value id="Unknown14" type="int"/>
 			<value id="UnknownIndex" type="int"/>
+			<value id="Unknown16" type="int"/>
+			<value id="Unknown17" type="int"/>
+			<value id="Unknown18" type="int"/>
 		</record>
 		<record id="StrIntMissionMonsterWaves" length="64">
 			<pointer id="Id" type="String"/>
