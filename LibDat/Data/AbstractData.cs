@@ -32,15 +32,15 @@ namespace LibDat.Data
         /// Writes to <c>writer</c> pointer to itself
         /// </summary>
         /// <param name="writer"></param>
-        public virtual void WritePointer(BinaryWriter writer)
+        public virtual void WritePointer(DatWriter writer)
         {
-            writer.Write(Offset);
+            writer.WritePointer(Offset);
         }
 
-        public virtual void WritePointerOffset(BinaryWriter writer, int NewOffset)
+        public virtual void WritePointerOffset(DatWriter writer, int NewOffset)
         {
             Offset = NewOffset;
-            writer.Write(Offset);
+            writer.WritePointer(Offset);
         }
 
         /// <summary>

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-
 using LibDat.Data;
 using System.Text.RegularExpressions;
 
@@ -14,6 +13,13 @@ namespace LibDat
     /// </summary>
     public class DatContainer
     {
+        /// <summary>
+        /// Bit type of dat file (.dat64 for 64bit)
+        /// </summary>
+        public enum DatType { Dat32, Dat64 }
+
+        private readonly DatType _datType;
+
         /// <summary>
         /// Name of the dat file (without .dat extension)
         /// </summary>
@@ -30,6 +36,8 @@ namespace LibDat
         public int Count { get; private set; }
 
         public RecordInfo RecordInfo { get; private set; }
+
+        public int RecordSize { get; private set; }
 
         /// <summary>
         /// Offset of the data section in the .dat file (Starts with 0xbbbbbbbbbbbbbbbb)
@@ -67,14 +75,15 @@ namespace LibDat
         /// <param name="fileName">Name of the dat file (with extension)</param>
         public DatContainer(Stream inStream, string fileName)
         {
+            _datType = fileName.EndsWith("64") ? DatType.Dat64 : DatType.Dat32;
             DatName = Path.GetFileNameWithoutExtension(fileName);
             RecordInfo = RecordFactory.GetRecordInfo(DatName);
             DataEntries = new Dictionary<int, AbstractData>();
             DataPointers = new Dictionary<int, PointerData>();
 
-            using (var br = new BinaryReader(inStream, Encoding.Unicode))
+            using (var datReader = DatReader.CreateDatReader(_datType, inStream, RecordInfo))
             {
-                Read(br);
+                Read(datReader);
             }
         }
 
@@ -84,55 +93,49 @@ namespace LibDat
         /// <param name="filePath">Path of .dat file to parse</param>
         public DatContainer(string filePath)
         {
+            _datType = filePath.EndsWith("64") ? DatType.Dat64 : DatType.Dat32;
             DatName = Path.GetFileNameWithoutExtension(filePath);
             RecordInfo = RecordFactory.GetRecordInfo(DatName);
             DataEntries = new Dictionary<int, AbstractData>();
             DataPointers = new Dictionary<int, PointerData>();
 
             var fileBytes = File.ReadAllBytes(filePath);
-
-            using (var ms = new MemoryStream(fileBytes))
+            using (var datReader = DatReader.CreateDatReader(_datType, new MemoryStream(fileBytes), RecordInfo))
             {
-                using (var br = new BinaryReader(ms, Encoding.Unicode))
-                {
-                    Read(br);
-                }
+                Read(datReader);
             }
         }
 
         /// <summary>
         /// Reads the .dat frile from the specified stream
         /// </summary>
-        /// <param name="inStream">Stream containing contents of .dat file</param>
-        private void Read(BinaryReader inStream)
+        /// <param name="reader">DatReader containing contents of .dat file</param>
+        private void Read(DatReader reader)
         {
-            Length = (int)inStream.BaseStream.Length;
+            Length = (int)reader.BaseStream.Length;
             DataSectionOffset = 0;
+            RecordSize = reader.RecordSize;
 
             // check that record format is defined
             if (RecordInfo == null)
                 throw new Exception("Missing dat parser for file " + DatName);
 
-            Count = inStream.ReadInt32();
+            Count = reader.ReadInt32();
 
             // find record_length;
-            var actualRecordLength = FindRecordLength(inStream, Count);
-            if (actualRecordLength != RecordInfo.Length)
-                throw new Exception("Actual record length = " + actualRecordLength
-                    + " not equal length defined in XML: " + RecordInfo.Length);
-
+            var actualRecordLength = reader.DetermineRecordLength(Count);
+            
             // Data section offset
             DataSectionOffset = Count * actualRecordLength + 4;
             DataSectionDataLength = Length - DataSectionOffset - 8;
-            inStream.BaseStream.Seek(DataSectionOffset, SeekOrigin.Begin);
+            reader.BaseStream.Seek(DataSectionOffset, SeekOrigin.Begin);
             // check magic number
-            if (inStream.ReadUInt64() != 0xBBbbBBbbBBbbBBbb)
+            if (reader.ReadUInt64() != 0xBBbbBBbbBBbbBBbb)
                 throw new ApplicationException("Missing magic number after records");
 
-
             // save entire stream
-            inStream.BaseStream.Seek(0, SeekOrigin.Begin);
-            _originalData = inStream.ReadBytes(Length);
+            reader.BaseStream.Seek(0, SeekOrigin.Begin);
+            _originalData = reader.ReadBytes(Length);
 
             // read records
             if (actualRecordLength == 0)
@@ -144,30 +147,10 @@ namespace LibDat
             Records = new List<RecordData>(Count);
             for (var i = 0; i < Count; i++)
             {
-                Records.Add(new RecordData(RecordInfo, inStream, i));
-            }
+                Records.Add(new RecordData(RecordInfo, reader, i));
+            }                        
         }
 
-        private static int FindRecordLength(BinaryReader inStream, int numberOfEntries)
-        {
-            if (numberOfEntries == 0)
-                return 0;
-
-            inStream.BaseStream.Seek(4, SeekOrigin.Begin);
-            var stringLength = inStream.BaseStream.Length;
-            var recordLength = 0;
-            for (var i = 0; inStream.BaseStream.Position <= stringLength - 8; i++)
-            {
-                var ul = inStream.ReadUInt64();
-                if (ul == 0xBBbbBBbbBBbbBBbb)
-                {
-                    recordLength = i;
-                    break;
-                }
-                inStream.BaseStream.Seek(-8 + numberOfEntries, SeekOrigin.Current);
-            }
-            return recordLength;
-        }
 
         /// <summary>
         /// Saves parsed data to specified path
@@ -199,10 +182,10 @@ namespace LibDat
             // Mapping of the new string and data offsets
             var changedStringOffsets = new Dictionary<int, int>();
 
-            var outStream = new BinaryWriter(rawOutStream, Encoding.Unicode);
-
+            var writer = DatWriter.CreateDatWriter(_datType, rawOutStream);
+            
             // write original data
-            outStream.Write(_originalData);
+            writer.Write(_originalData);
 
             // append changed strings to the end
             foreach (var item in DataEntries)
@@ -213,8 +196,8 @@ namespace LibDat
                 if (string.IsNullOrWhiteSpace(str.NewValue)) continue;
 
                 // actually write changed string
-                var newOffset = (int)outStream.BaseStream.Position - DataSectionOffset;
-                str.Save(outStream);
+                var newOffset = (int)writer.BaseStream.Position - DataSectionOffset;
+                str.Save(writer);
                 changedStringOffsets[str.Offset] = newOffset;
             }
 
@@ -227,11 +210,11 @@ namespace LibDat
                                   select pData)
             {
                 // StringData will write pointer to itself to pointer data
-                outStream.Seek(DataSectionOffset + pData.Offset, SeekOrigin.Begin);
-                pData.RefData.WritePointerOffset(outStream, changedStringOffsets[pData.RefData.Offset]);
+                writer.Seek(DataSectionOffset + pData.Offset, SeekOrigin.Begin);
+                pData.RefData.WritePointerOffset(writer, changedStringOffsets[pData.RefData.Offset]);
             }
         }
-
+              
         /// <summary>
         /// returns all non empty StringData referenced from fields marked as "user field" 
         /// directly or through lists or other pointers
@@ -289,7 +272,7 @@ namespace LibDat
             }
             // skip any other value data
         }
-
+        
         /// <summary>
         /// Returns a CSV table with the contents of this dat container.
         /// </summary>
@@ -300,7 +283,7 @@ namespace LibDat
             var sb = new StringBuilder();
             var fieldInfos = RecordInfo.Fields;
 
-            if (RecordInfo.Length == 0)
+            if (RecordSize == 0)
             {
                 return sb.AppendFormat("Count").AppendLine().Append(Count).AppendLine().ToString();
             }

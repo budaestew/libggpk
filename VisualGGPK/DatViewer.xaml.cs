@@ -83,7 +83,7 @@ namespace VisualGGPK
             DataContext = null;
             datName.Content = filename;
             datInfo.Content =
-                "\tSingle record length (bytes) = " + _wrapper.RecordInfo.Length +
+                "\tSingle record length (bytes) = " + _wrapper.RecordSize +
                 "\n\tNumber of records          = " + _wrapper.Records.Count +
                 "\n\tData section start offset  = " + _wrapper.DataSectionffset +
                 "\n\tData section length        = " + _wrapper.DataSectionDataLength;

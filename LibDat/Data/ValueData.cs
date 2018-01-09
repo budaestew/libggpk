@@ -15,7 +15,7 @@ namespace LibDat.Data
         /// </summary>
         public T Value { get; private set; }
 
-        public ValueData(BaseDataType type, BinaryReader reader, Dictionary<string, object> options)
+        public ValueData(BaseDataType type, DatReader reader, Dictionary<string, object> options)
             : base(type)
         {
             if (!options.ContainsKey("offset"))
@@ -23,10 +23,12 @@ namespace LibDat.Data
 
             // moving to start of value data
             Offset = (int)options["offset"];
-            reader.BaseStream.Seek(DatContainer.DataSectionOffset + Offset, SeekOrigin.Begin);
-
-            Value = reader.Read<T>();
-            Length = type.Width;
+            long actualOffset = DatContainer.DataSectionOffset + Offset;
+            if (actualOffset > 0)
+            {
+                reader.BaseStream.Position = actualOffset;
+                Value = reader.Read<T>();
+            }
         }
 
         public override string GetValueString()
@@ -37,7 +39,7 @@ namespace LibDat.Data
 
     public class Int32Data : ValueData<Int32>
     {
-        public Int32Data(BaseDataType type, BinaryReader reader, Dictionary<string, object> options)
+        public Int32Data(BaseDataType type, DatReader reader, Dictionary<string, object> options)
             : base(type, reader, options) { }
 
         /// <summary>
@@ -52,7 +54,7 @@ namespace LibDat.Data
 
     public class Int64Data : ValueData<Int64>
     {
-        public Int64Data(BaseDataType type, BinaryReader reader, Dictionary<string, object> options)
+        public Int64Data(BaseDataType type, DatReader reader, Dictionary<string, object> options)
             : base(type, reader, options) { }
 
         /// <summary>

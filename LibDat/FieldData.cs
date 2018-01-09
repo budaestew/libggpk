@@ -18,7 +18,9 @@ namespace LibDat
 
         public FieldInfo FieldInfo { get; private set; }
 
-        public FieldData(FieldInfo fieldInfo, BinaryReader reader)
+        public int _width;
+
+        public FieldData(FieldInfo fieldInfo, DatReader reader)
         {
             FieldInfo = fieldInfo;
 
@@ -26,6 +28,7 @@ namespace LibDat
             var dict = new Dictionary<string, object>();
             dict["offset"] = offset;
             Data = TypeFactory.CreateData(fieldInfo.FieldType, reader, dict);
+            _width = reader.GetFieldSize(fieldInfo.FieldType);
         }
 
         /// <summary>
@@ -42,7 +45,7 @@ namespace LibDat
             var pData = Data as PointerData;
             if (pData == null)
                 throw new Exception("FieldData of pointer type doesn't have data of PointerData class");
-            if (FieldInfo.FieldType.Width != 8) return String.Format("@{0}", pData.RefData.Offset);
+            if (_width != 16) return String.Format("@{0}", pData.RefData.Offset);
 
             var lData = pData.RefData as ListData;
             if (lData == null)

@@ -14,12 +14,6 @@ namespace LibDat
         /// </summary>
         public string FileName { get; private set; }
 
-        /// <summary>
-        /// Contains number of bytes this record will read or write to the .dat file
-        /// </summary>
-        /// <returns>Number of bytes this record will take in its native format</returns>
-        public int Length { get; private set; }
-
         private readonly List<FieldInfo> _fields;
         public ReadOnlyCollection<FieldInfo> Fields
         {
@@ -30,13 +24,31 @@ namespace LibDat
         /// returns true if record has fields of pointer type
         /// </summary>
         public bool HasPointers { get; private set; }
+                
+        /// <summary>
+        /// Ensure uniqueness of the field names and make it access to field by name quickly
+        /// </summary>
+        private readonly Dictionary<string, int> _fieldIndexes;
 
-        public RecordInfo(string fileName, int length = 0, List<FieldInfo> fields = null)
+        public int GetFieldIndex(string key)
+        {
+            return _fieldIndexes.ContainsKey(key) ? _fieldIndexes[key] : -1;
+        }
+
+        public RecordInfo(string fileName, List<FieldInfo> fields = null)
         {
             FileName = fileName;
-            Length = length;
             _fields = fields ?? new List<FieldInfo>();
             HasPointers = _fields.Any(x => x.IsPointer);
+
+            _fieldIndexes = new Dictionary<string, int>(_fields.Count);
+            foreach (var field in _fields)
+            {
+                if (_fieldIndexes.ContainsKey(field.Id))
+                    throw new System.ArgumentException("Duplicated key for " + fileName + ":" + field.Id);
+
+                _fieldIndexes.Add(field.Id, field.Index);
+            }
         }
     }
 }

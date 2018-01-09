@@ -13,21 +13,9 @@ namespace LibDat.Types
         /// </summary>
         public string Name { get; private set; }
 
-        /// <summary>
-        /// Size of type data in bytes. Equals -1 if data has variable length (string, list of data)
-        /// </summary>
-        public int Width { get; private set; }
-
-        /// <summary>
-        /// Size in bytes of pointer to data of this type. Can be 4 or 8
-        /// </summary>
-        public int PointerWidth { get; private set; }
-
-        public BaseDataType(string name, int width, int pointerWidth)
+        public BaseDataType(string name)
         {
             Name = name;
-            Width = width;
-            PointerWidth = pointerWidth;
         }
 
         /// <summary>
@@ -36,10 +24,10 @@ namespace LibDat.Types
         /// </summary>
         /// <param name="reader">stream to read from</param>
         /// <returns>List of parameters required to read data of this type</returns>
-        public virtual Dictionary<string, object> ReadPointer(BinaryReader reader)
+        public virtual Dictionary<string, object> ReadPointer(DatReader reader)
         {
             var dict = new Dictionary<string, object>();
-            var offset = reader.ReadInt32();
+            var offset = reader.ReadPointer();
             dict["offset"] = offset;
             return dict;
         }

@@ -15,11 +15,10 @@ namespace LibDat.Data
         /// </summary>
         public string NewValue { get; set; }
 
-        public StringData(BaseDataType type, BinaryReader inStream, Dictionary<string, object> options)
-            : base(type, inStream, options)
+        public StringData(BaseDataType type, DatReader reader, Dictionary<string, object> options)
+            : base(type, reader, options)
         {
             NewValue = null;
-            Length = 2 * Value.Length + 4;
 
             DatContainer.DataEntries[Offset] = this;
         }
@@ -29,15 +28,13 @@ namespace LibDat.Data
         /// If 'NewData' has been filled out then it will be written instead of the original data.
         /// </summary>
         /// <param name="outStream"></param>
-        public void Save(BinaryWriter outStream)
+        public int Save(DatWriter outStream)
         {
             var dataToWrite = NewValue ?? Value;
-            //outStream.Write<string>(dataToWrite);
-            for (int i = 0; i < dataToWrite.Length; i++)
-            {
-                outStream.Write(dataToWrite[i]);
-            }
-            outStream.Write((int)0);
+
+            outStream.Write(dataToWrite);
+
+            return dataToWrite.Length * 2 + 4;
         }
 
         public override string GetValueString()

@@ -13,11 +13,6 @@ namespace LibDat
         public int Index { get; private set; }
 
         /// <summary>
-        /// returns field's offset from record start (in bytes)
-        /// </summary>
-        public int RecordOffset { get; private set; }
-
-        /// <summary>
         /// Field name
         /// </summary>
         public string Id { get; private set; }
@@ -26,7 +21,7 @@ namespace LibDat
         /// Custom text for field
         /// </summary>
         public string Description { get; private set; }
-        
+
         // returns true if fields contains user string (data)
         public bool IsUser { get; private set; }
 
@@ -35,12 +30,11 @@ namespace LibDat
         public bool IsPointer { get; private set; }
 
         // index, fieldId, fieldDescription, fieldType, isPointer
-        public FieldInfo(BaseDataType type, int index, int recordOffset, 
-            string id, string description, bool isUser = false) 
+        public FieldInfo(BaseDataType type, int index,
+            string id, string description, bool isUser = false)
         {
             Index = index;
             Id = id;
-            RecordOffset = recordOffset;
             Description = description;
             IsUser = isUser;
             IsPointer = type is PointerDataType;
@@ -50,9 +44,9 @@ namespace LibDat
 
         public string GetFullName(string delimiter)
         {
-            return    Id                + delimiter 
-                    + FieldType.Name    + delimiter
-                    + (FieldType.Width == 1 ? " byte" : " bytes");
+            return Id + delimiter
+                + FieldType.Name + delimiter;
+            //+ (FieldType.Width == 1 ? " byte" : " bytes");
         }
     }
 }

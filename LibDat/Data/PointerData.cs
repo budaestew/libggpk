@@ -20,14 +20,13 @@ namespace LibDat.Data
         /// </summary>
         public BaseDataType RefType { get; private set; }
 
-        public PointerData(PointerDataType dataType, BinaryReader reader, Dictionary<string, object> options)
-            : base(dataType)
+        public PointerData(PointerDataType dataType, DatReader reader, Dictionary<string, object> options)
+           : base(dataType)
         {
             if (!options.ContainsKey("offset"))
                 throw new Exception("Wrong parameters for reading ListData");
 
             RefType = dataType.RefType;
-            Length = RefType.PointerWidth;
 
             // moving to start of pointer so that RefType can read it's own options from that point
             Offset = (int)options["offset"];

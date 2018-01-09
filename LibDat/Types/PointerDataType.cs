@@ -10,8 +10,8 @@ namespace LibDat.Types
         /// </summary>
         public BaseDataType RefType { get; private set; }
 
-        public PointerDataType(string name, int width, int pointerWidth,  BaseDataType refType) 
-            : base(name, width, pointerWidth)
+        public PointerDataType(string name, BaseDataType refType)
+            : base(name)
         {
             RefType = refType;
         }

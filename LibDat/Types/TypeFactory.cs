@@ -18,65 +18,44 @@ namespace LibDat.Types
 
         #region Extension methods on BinaryWriter and BinaryReader
 
-        private static readonly Dictionary<Type, Func<BinaryReader, object>> ReadFuncs =
-            new Dictionary<Type, Func<BinaryReader, object>>
+        private static readonly Dictionary<Type, Func<DatReader, object>> ReadFuncs =
+            new Dictionary<Type, Func<DatReader, object>>
         {
             {typeof (bool), s => s.ReadBoolean()},
             {typeof (byte), s => s.ReadByte()},
             {typeof (short), s => s.ReadInt16()},
             {typeof (int), s => s.ReadInt32()},
-            {typeof (uint), s => s.ReadUInt32()},
+            {typeof (uint), s => s.ReadUInt()},
             {typeof (long), s => s.ReadInt64()},
             {typeof (ulong), s => s.ReadUInt64()},
-            {typeof (string), s => 
-            {
-                var sb = new StringBuilder();
-                char ch;
-                while ((ch = s.ReadChar()) != 0) { sb.Append(ch); }
-                ch = s.ReadChar();
-                if (ch != 0)    // string should end with int(0)
-                    throw new Exception("Not found int(0) value at the end of the string");
-                return sb.ToString();
-            }}
+            {typeof (string), s => s.ReadString()},
         };
 
-        private static readonly Dictionary<Type, Action<BinaryWriter, object>> WriteFuncs =
-            new Dictionary<Type, Action<BinaryWriter, object>>
+        private static readonly Dictionary<Type, Action<DatWriter, object>> WriteFuncs =
+            new Dictionary<Type, Action<DatWriter, object>>
         {
             {typeof (bool), (bw, o) => bw.Write((bool)o)},
-            {typeof (byte), (bw, o) => bw.Write((byte)o) },
+            {typeof (byte), (bw, o) => bw.Write((byte)o)},
             {typeof (short), (bw, o) => bw.Write((short)o)},
             {typeof (int), (bw, o) => bw.Write((int)o)},
             {typeof (uint), (bw, o) => bw.Write((uint)o)},
             {typeof (long), (bw, o) => bw.Write((long)o)},
             {typeof (ulong), (bw, o) => bw.Write((ulong)o)},
-            {typeof (string), (bw, o) =>
-            {
-                foreach (var ch in (string)o)
-                {
-                    bw.Write(ch);
-                }
-                bw.Write(0);
-            }},
+            {typeof (string), (bw, o) => bw.Write((string)o)},
         };
 
-        public static T Read<T>(this BinaryReader reader)
+        public static T Read<T>(this DatReader reader)
         {
             if (ReadFuncs.ContainsKey(typeof(T)))
                 return (T)ReadFuncs[typeof(T)](reader);
             throw new NotImplementedException();
         }
 
-        public static void Write<T>(this BinaryWriter reader, object obj)
+        public static void Write<T>(this DatWriter reader, object obj)
         {
             if (WriteFuncs.ContainsKey(typeof(T)))
                 WriteFuncs[typeof(T)](reader, (T)obj);
             throw new NotImplementedException();
-        }
-
-        public static int GetDataSectionOffset(this BinaryReader reader)
-        {
-            return (int)reader.BaseStream.Position - DatContainer.DataSectionOffset;
         }
 
         #endregion
@@ -114,12 +93,12 @@ namespace LibDat.Types
                     if (pointerString.Equals("ref|")) // pointer
                     {
                         var refType = ParseType(refTypeString);
-                        type = new PointerDataType(fieldType, refType.PointerWidth, 4, refType);
+                        type = new PointerDataType(fieldType, refType);
                     }
                     else if (pointerString.Equals("list|")) // list of data
                     {
                         var listType = ParseType(refTypeString);
-                        type = new ListDataType(fieldType, -1, 8, listType);
+                        type = new ListDataType(fieldType, listType);
                     }
                     else
                     {
@@ -151,14 +130,14 @@ namespace LibDat.Types
         {
             _types = new Dictionary<string, BaseDataType>
             {
-                {"bool", new BaseDataType("bool", 1, 4)},
-                {"byte", new BaseDataType("byte", 1, 4)},
-                {"short", new BaseDataType("short", 2, 4)},
-                {"int", new BaseDataType("int", 4, 4)},
-                {"uint", new BaseDataType("uint", 4, 4)},
-                {"long", new BaseDataType("long", 8, 4)},
-                {"ulong", new BaseDataType("ulong", 8, 4)},
-                {"string", new BaseDataType("string", -1, 4)}
+                {"bool", new BaseDataType("bool")},
+                {"byte", new BaseDataType("byte")},
+                {"short", new BaseDataType("short")},
+                {"int", new BaseDataType("int")},
+                {"uint", new BaseDataType("uint")},
+                {"long", new BaseDataType("long")},
+                {"ulong", new BaseDataType("ulong")},
+                {"string", new BaseDataType("string")}
             };
         }
 
@@ -184,48 +163,48 @@ namespace LibDat.Types
         /// inStream position should be in the beginning of data of pointer to data
         /// </summary>
         /// <param name="type">type to read</param>
-        /// <param name="inStream">strem to read from</param>
+        /// <param name="reader">DatReader to read from</param>
         /// <param name="options">null or list of params required to read dat aof type <c>type</c></param>
         /// <returns></returns>
-        public static AbstractData CreateData(BaseDataType type, BinaryReader inStream, Dictionary<string, object> options)
+        public static AbstractData CreateData(BaseDataType type, DatReader reader, Dictionary<string, object> options)
         {
             // check if list type
             var listDataType = type as ListDataType;
             if (listDataType != null) // list type data
-                return new ListData(listDataType, inStream, options);
+                return new ListData(listDataType, reader, options);
 
             // check if pointer type
             var pointerDataType = type as PointerDataType;
             if (pointerDataType != null) // pointer type data
-                return new PointerData(pointerDataType, inStream, options);
+                return new PointerData(pointerDataType, reader, options);
 
             // value type data
             AbstractData data;
             switch (type.Name)
             {
                 case "bool":
-                    data = new ValueData<bool>(type, inStream, options);
+                    data = new ValueData<bool>(type, reader, options);
                     break;
                 case "byte":
-                    data = new ValueData<byte>(type, inStream, options);
+                    data = new ValueData<byte>(type, reader, options);
                     break;
                 case "short":
-                    data = new ValueData<short>(type, inStream, options);
+                    data = new ValueData<short>(type, reader, options);
                     break;
                 case "int":
-                    data = new Int32Data(type, inStream, options);
+                    data = new Int32Data(type, reader, options);
                     break;
                 case "uint":
-                    data = new ValueData<uint>(type, inStream, options);
+                    data = new ValueData<uint>(type, reader, options);
                     break;
                 case "long":
-                    data = new Int64Data(type, inStream, options);
+                    data = new Int64Data(type, reader, options);
                     break;
                 case "ulong":
-                    data = new ValueData<ulong>(type, inStream, options);
+                    data = new ValueData<ulong>(type, reader, options);
                     break;
                 case "string":
-                    data = new StringData(type, inStream, options);
+                    data = new StringData(type, reader, options);
                     break;
                 default:
                     throw new Exception("Unknown value type name: " + type.Name);

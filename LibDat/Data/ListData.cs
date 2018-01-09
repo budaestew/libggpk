@@ -20,8 +20,8 @@ namespace LibDat.Data
 
         public BaseDataType ListType { get; private set; }
 
-        public ListData(ListDataType type, BinaryReader reader, Dictionary<string, object> options)
-            : base(type)
+        public ListData(ListDataType type, DatReader reader, Dictionary<string, object> options)
+           : base(type)
         {
             if (!options.ContainsKey("count") || !options.ContainsKey("offset"))
                 throw new Exception("Wrong parameters for reading ListData");
@@ -34,16 +34,16 @@ namespace LibDat.Data
 
             Count = (int)options["count"];
             List = new List<AbstractData>(Count);
-            Length = ListType.Width * Count;
             if (Count == 0)
                 return;
 
             // Count > 0
+            int dataSize = reader.GetFieldSize(type.ListType);
             var currentOffset = reader.GetDataSectionOffset();
             for (var i = 0; i < Count; ++i)
             {
                 // given fixed size of ListType
-                var listEntryOffset = currentOffset + i*ListType.Width; 
+                var listEntryOffset = currentOffset + i * dataSize;
                 var dict = new Dictionary<string, object>();
                 dict["offset"] = listEntryOffset;
                 var data = TypeFactory.CreateData(ListType, reader, dict);
@@ -53,10 +53,10 @@ namespace LibDat.Data
             DatContainer.DataEntries[Offset] = this;
         }
 
-        public override void WritePointer(BinaryWriter writer)
+        public override void WritePointer(DatWriter writer)
         {
-            writer.Write(Count);
-            writer.Write(Offset);
+            writer.WritePointer(Count);
+            writer.WritePointer(Offset);
         }
 
         public override string GetValueString()

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LibDat.Data;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -19,30 +20,51 @@ namespace LibDat
             get { return _fieldsData.AsReadOnly(); }
         }
 
-        public RecordData(RecordInfo ri, BinaryReader inStream, int index)
+        /// <summary>
+        /// For easy usage
+        /// </summary>
+        public FieldData this[int index]
+        {
+            get
+            {
+                return _fieldsData[index];
+            }
+        }
+
+        public FieldData this[string key]
+        {
+            get
+            {
+                int index = RecordInfo.GetFieldIndex(key);
+                if (index == -1)
+                    throw new ArgumentException("No field '" + key + "' in " + RecordInfo.FileName);
+                return this[index];
+            }
+        }
+
+        public RecordData(RecordInfo ri, DatReader reader, int index)
         {
             RecordInfo = ri;
             Index = index;
             _fieldsData = new List<FieldData>();
 
-            // Seek to start of record
-            inStream.BaseStream.Seek(4 + ri.Length*index, SeekOrigin.Begin);
-            var startOffset = (int)inStream.BaseStream.Position;
+            // Seek to start of record            
             foreach (var fi in RecordInfo.Fields)
             {
+                int lastOffset = -1;
                 try
                 {
-                    inStream.BaseStream.Seek(startOffset + fi.RecordOffset, SeekOrigin.Begin);
-                    var fieldData = new FieldData(fi, inStream);
+                    lastOffset = reader.Position;
+                    reader.SeekToField(index, fi.Index);
+                    var fieldData = new FieldData(fi, reader);
                     _fieldsData.Add(fieldData);
                 }
                 catch (Exception e)
                 {
                     var error = String.Format(
-                        "Error: Row ID = {0} Field Id={1}, Field Type Name = {2},"  +
-                        "\n Message:{3}\n Stacktrace: {4}",
-                        Index, fi.Id, fi.FieldType.Name, e.Message, e.StackTrace);
-                    Console.WriteLine(error);
+                        "Error: Row ID = {0} Field Id={1}, Field Type Name = {2}, Offset = {3}," +
+                        "\n Message:{4}\n Stacktrace: {5}",
+                        Index, fi.Id, fi.FieldType.Name, lastOffset, e.Message, e.StackTrace);
                     throw new Exception(error);
                 }
             }

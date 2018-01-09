@@ -53,15 +53,6 @@ namespace LibDat
             var file = GetAttributeValue(node, "file");
             if (file == null)
                 throw new Exception("Invalid XML: record has wrong attribute 'id' :" + node);
-            var lengthString = GetAttributeValue(node, "length");
-            if (lengthString == null)
-                throw new Exception("Invalid XML: record has wrong attribute 'length' :" + node);
-            var length = Convert.ToInt32(lengthString);
-            if (length == 0)
-            {
-                _records.Add(file, new RecordInfo(file));
-                return;
-            }
 
             // process fields of record 
             var fields = new List<FieldInfo>();
@@ -90,24 +81,11 @@ namespace LibDat
                 var isUserString = GetAttributeValue(field, "isUser");
                 var isUser = !String.IsNullOrEmpty(isUserString);
 
-                fields.Add(new FieldInfo(dataType, index, totalLength, fieldId, fieldDescription, isUser));
+                fields.Add(new FieldInfo(dataType, index, fieldId, fieldDescription, isUser));
                 index++;
-                totalLength += dataType.Width;
             }
 
-            // testing whether record's data is correct
-            if (totalLength != length)
-            {
-                var error = "Total length of fields: " + totalLength + " not equal record length: " + length
-                            + " for file: " + file;
-                foreach (var field in fields)
-                {
-                    Console.WriteLine("{0} = {1}", field.FieldType.Name, field.FieldType.Width);
-                }
-                throw new Exception(error);
-            }
-
-            _records.Add(file, new RecordInfo(file, length, fields));
+            _records.Add(file, new RecordInfo(file, fields));
         }
 
         // returns true if record's info for file fileName is defined

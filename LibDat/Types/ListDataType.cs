@@ -13,17 +13,17 @@ namespace LibDat.Types
         /// </summary>
         public BaseDataType ListType { get; private set; }
 
-        public ListDataType(string name, int width, int pointerWidth, BaseDataType listType) 
-            : base(name, width, pointerWidth)
+        public ListDataType(string name, BaseDataType listType)
+            : base(name)
         {
             ListType = listType;
         }
 
-        public override Dictionary<string, object> ReadPointer(BinaryReader reader)
+        public override Dictionary<string, object> ReadPointer(DatReader reader)
         {
             var dict = new Dictionary<string, object>();
-            var count = reader.ReadInt32();
-            var offset = reader.ReadInt32();
+            var count = reader.ReadPointer();
+            var offset = reader.ReadPointer();
             dict["count"] = count;
             dict["offset"] = offset;
             return dict;

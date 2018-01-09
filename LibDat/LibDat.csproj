@@ -45,6 +45,8 @@
     <Compile Include="Data\PointerData.cs" />
     <Compile Include="Data\StringData.cs" />
     <Compile Include="Data\ValueData.cs" />
+    <Compile Include="DatReader.cs" />
+    <Compile Include="DatWriter.cs" />
     <Compile Include="FieldData.cs" />
     <Compile Include="RecordData.cs" />
     <Compile Include="RecordFactory.cs" />

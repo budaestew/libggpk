@@ -92,7 +92,7 @@ namespace VisualGGPK
 
         public DatWrapper(string fileName)
         {
-            _datName = Path.GetFileNameWithoutExtension(fileName);
+            _datName = Path.GetFileName(fileName);
 
             var fileBytes = File.ReadAllBytes(fileName);
 
@@ -104,7 +104,7 @@ namespace VisualGGPK
 
         public DatWrapper(Stream inStream, string fileName)
         {
-            _datName = Path.GetFileNameWithoutExtension(fileName);
+            _datName = Path.GetFileName(fileName);
             ParseDatFile(inStream);
         }
 
