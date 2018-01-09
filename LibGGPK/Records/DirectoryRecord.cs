@@ -103,21 +103,33 @@ namespace LibGGPK.Records
         /// <param name="ggpkPath">Path of pack file that contains this record</param>
         /// <param name="nameHash">Previous name hash of entry</param>
         /// <param name="newEntryOffset">New offset of entry</param>
-        public void UpdateOffset(string ggpkPath, uint nameHash, long newEntryOffset)
+        public bool UpdateOffset(string ggpkPath, uint nameHash, long newEntryOffset)
+        {
+            using (var bw = new BinaryWriter(File.Open(ggpkPath, FileMode.Open)))
+            {
+                return UpdateOffset(bw, nameHash, newEntryOffset);
+            }
+        }
+
+        /// <summary>
+        /// Updates the location of an entry in this directory.
+        /// </summary>
+        /// <param name="bw">BinaryWriter of pack file that contains this record</param>
+        /// <param name="nameHash">Previous name hash of entry</param>
+        /// <param name="newEntryOffset">New offset of entry</param>
+        public bool UpdateOffset(BinaryWriter bw, uint nameHash, long newEntryOffset)
         {
             var entry = Entries.FirstOrDefault(e => e.EntryNameHash == nameHash);
-            if (entry.Offset == 0 )
-                throw new ApplicationException("Entry not found!");
+            if (entry.Offset == 0)
+                return false;
 
-            using (var ggpkFileStream = File.Open(ggpkPath, FileMode.Open))
-            {
-                // Jump to the location of 'Entries' in the ggpk file and 
-                // change the entry for 'previousEntryOffset' to 'newEntryOffset'
-                ggpkFileStream.Seek(EntriesBegin + 12 * Entries.IndexOf(entry) + 4, SeekOrigin.Begin);
-                var bw = new BinaryWriter(ggpkFileStream);
-                bw.Write(newEntryOffset);
-                entry.Offset = newEntryOffset;
-            }
+            // Jump to the location of 'Entries' in the ggpk file and 
+            // change the entry for 'previousEntryOffset' to 'newEntryOffset'
+            bw.BaseStream.Seek(EntriesBegin + 12 * Entries.IndexOf(entry) + 4, SeekOrigin.Begin);
+            bw.Write(BitConverter.GetBytes(newEntryOffset), 0, 8);
+            entry.Offset = newEntryOffset;
+            
+            return true;
         }
 
         public uint GetNameHash()

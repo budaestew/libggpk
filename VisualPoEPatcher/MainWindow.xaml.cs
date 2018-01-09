@@ -309,7 +309,7 @@ namespace PoEGGPKPatcher
                     lines += line + "\r\n";
                 }
             }
-            _recordsByPath[commonUi].ReplaceContents(textBoxContentGGPK.Text, Encoding.Unicode.GetBytes(lines), _content.FreeRoot);
+            _content.ReplaceFile(_recordsByPath[commonUi], Encoding.Unicode.GetBytes(lines));
             OutputLine("Font Size Changed.");
         }
 
@@ -371,7 +371,7 @@ namespace PoEGGPKPatcher
 
                 }
             }
-            _recordsByPath[common_ui].ReplaceContents(textBoxContentGGPK.Text, Encoding.Unicode.GetBytes(lines), _content.FreeRoot);
+            _content.ReplaceFile(_recordsByPath[common_ui], Encoding.Unicode.GetBytes(lines));
             OutputLine("Color Changed.");
         }
 
@@ -536,7 +536,7 @@ namespace PoEGGPKPatcher
                         var replacementData = new byte[item.UncompressedSize];
                         reader.Read(replacementData, 0, replacementData.Length);
 
-                        _recordsByPath[fixedFileName].ReplaceContents(textBoxContentGGPK.Text, replacementData, _content.FreeRoot);
+                        _content.ReplaceFile(_recordsByPath[fixedFileName], replacementData);
                     }
                 }
                 OutputLine("Content.ggpk is Fine.");

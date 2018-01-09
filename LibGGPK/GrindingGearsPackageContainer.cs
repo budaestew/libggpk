@@ -24,7 +24,7 @@ namespace LibGGPK
         /// <summary>
         /// Root of the Free record list
         /// </summary>
-        public LinkedList<FreeRecord> FreeRoot;
+        public LinkedList<FreeRecord> FreeRoot { get { return _freeRecordManager.List; } }
         /// <summary>
         /// An estimation of the number of records in the Contents.GGPK file. This is only
         /// used to inform the users of the parsing progress.
@@ -38,6 +38,7 @@ namespace LibGGPK
         private readonly List<FileRecord> _files;
         private readonly List<DirectoryRecord> _directories;
         private readonly List<FreeRecord> _freeRecords;
+        private FreeRecordManager _freeRecordManager;
 
         public GrindingGearsPackageContainer()
         {
@@ -45,10 +46,11 @@ namespace LibGGPK
             _files = new List<FileRecord>();
             _directories = new List<DirectoryRecord>();
             _freeRecords = new List<FreeRecord>();
+            _freeRecordManager = new FreeRecordManager();
         }
 
         #region Read GGPK
-
+        
 
 
         /// <summary>
@@ -156,7 +158,7 @@ namespace LibGGPK
         {
             DirectoryRoot = BuildDirectoryTree();
             output(String.Format("Found {0} directories and {1} files", _directories.Count, _files.Count) + Environment.NewLine);
-            FreeRoot = BuildFreeList();
+            BuildFreeList();
             output(String.Format("Found {0} FREE records", _freeRecords.Count) + Environment.NewLine);
         }
 
@@ -248,9 +250,8 @@ namespace LibGGPK
 
         /// <summary>
         /// Builds a linked list of FREE records by traversing FREE records in GGPK file
-        /// </summary>
-        /// <returns>Linked list containing list of FREE records</returns>
-        private LinkedList<FreeRecord> BuildFreeList()
+        /// </summary>        
+        private void BuildFreeList()
         {
             var ggpkRecord = RecordOffsets[0] as GgpkRecord;
             if (ggpkRecord == null)
@@ -266,10 +267,10 @@ namespace LibGGPK
             if (currentFreeRecord == null)
                 throw new Exception("Couldn't find first FREE record");
 
-            var freeList = new LinkedList<FreeRecord>();
+            _freeRecordManager.Initialize();
             while (true)
             {
-                freeList.AddLast(currentFreeRecord);
+                _freeRecordManager.Add(currentFreeRecord);
                 _freeRecords.Add(currentFreeRecord);
                 var nextFreeOFfset = currentFreeRecord.NextFreeOffset;
 
@@ -284,8 +285,6 @@ namespace LibGGPK
                 if (currentFreeRecord == null)
                     throw new Exception("Found a record that wasn't a FREE record while looking for next FREE record");
             }
-
-            return freeList;
         }
         #endregion
 
@@ -309,7 +308,7 @@ namespace LibGGPK
                     throw new Exception("First record isn't GGPK record");
 
                 // Skip GGPK record for now
-                writer.Seek((int) ggpkRecord.Length, SeekOrigin.Begin);
+                writer.Seek((int)ggpkRecord.Length, SeekOrigin.Begin);
 
                 // recursively write files and folders records
                 var changedOffsets = new Dictionary<long, long>();
@@ -325,15 +324,15 @@ namespace LibGGPK
                         writer.Write(data);
 
                         fileCopied++;
-                        var percentComplete = fileCopied/_files.Count;
+                        var percentComplete = fileCopied / _files.Count;
                         if (!(percentComplete - previousPercentComplete >= 0.05f)) return;
 
                         if (output != null)
-                            output(String.Format("  {0:00.00}%", 100.0*percentComplete));
+                            output(String.Format("  {0:00.00}%", 100.0 * percentComplete));
                         previousPercentComplete = percentComplete;
                     });
                 if (output != null) output("  100%");
-                
+
                 // write root directory
                 var rootDirectoryOffset = writer.BaseStream.Position;
                 DirectoryRoot.Record.Write(writer, changedOffsets);
@@ -349,7 +348,7 @@ namespace LibGGPK
                 ggpkRecordNew.RecordOffsets[0] = rootDirectoryOffset;
                 ggpkRecordNew.RecordOffsets[1] = firstFreeRecordOffset;
                 ggpkRecordNew.Write(writer, changedOffsets);
-                if (output != null) 
+                if (output != null)
                     output("Finished !!!");
             }
         }
@@ -368,6 +367,32 @@ namespace LibGGPK
             if (parent == null) // root directory
                 return;
             parent.RemoveDirectory(dir);
+        }
+
+        public void ReplaceFile(FileRecord fileRecord, byte[] data)
+        {
+            using (var bw = new BinaryWriter(File.Open(_pathToGppk, FileMode.Open)))
+            {
+                RecordOffsets.Remove(fileRecord.RecordBegin);
+
+                _freeRecordManager.AddFromFileRecord(bw, fileRecord);
+
+                fileRecord.Data = data;
+
+                long position = _freeRecordManager.AllocSpace(bw, fileRecord.Length);
+                bw.BaseStream.Position = position;
+                fileRecord.WriteData(bw);
+
+                if (!fileRecord.ContainingDirectory.Record.UpdateOffset(bw, fileRecord.GetNameHash(), fileRecord.RecordBegin))
+                    throw new ApplicationException("Entry not found!");
+
+                RecordOffsets[fileRecord.RecordBegin] = fileRecord;
+            }
+        }
+
+        public void ReplaceFile(FileRecord fileRecord, string path)
+        {
+            ReplaceFile(fileRecord, File.ReadAllBytes(path));
         }
     }
 }

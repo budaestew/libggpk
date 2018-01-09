@@ -60,6 +60,11 @@ namespace VisualGGPK
             get { return _dat.RecordInfo; }
         }
 
+        public int RecordSize
+        {
+            get { return _dat.RecordSize; }
+        }
+
         public long DataSectionffset
         {
             get { return DatContainer.DataSectionOffset; }

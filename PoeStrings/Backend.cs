@@ -158,7 +158,7 @@ namespace PoeStrings
                 }
 
                 // dc.SaveAsBytes() will return the new data for this .dat file after replacing the original strings with whatever's in 'NewData'
-                datRecord.ReplaceContents(ggpkPath, dc.SaveAsBytes(), content.FreeRoot);
+                content.ReplaceFile(datRecord, dc.SaveAsBytes());                
             }
 
             if (outputBuffer.Length > 0)

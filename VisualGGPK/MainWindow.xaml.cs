@@ -460,8 +460,8 @@ namespace VisualGGPK
                     CheckPathExists = true
                 };
 
-                if (openFileDialog.ShowDialog() != true) return;
-                recordToReplace.ReplaceContents(_ggpkPath, openFileDialog.FileName, _content.FreeRoot);
+                if (openFileDialog.ShowDialog() != true) return;                
+                _content.ReplaceFile(recordToReplace, openFileDialog.FileName);
                 MessageBox.Show(
                     String.Format(Settings.Strings["ReplaceItem_Successful"], recordToReplace.Name, recordToReplace.RecordBegin.ToString("X")), 
                     Settings.Strings["ReplaceItem_Successful_Caption"], 
@@ -550,8 +550,8 @@ namespace VisualGGPK
                     {
                         var replacementData = new byte[item.UncompressedSize];
                         reader.Read(replacementData, 0, replacementData.Length);
-
-                        _recordsByPath[fixedFileName].ReplaceContents(_ggpkPath, replacementData, _content.FreeRoot);
+                                                
+                        _content.ReplaceFile(_recordsByPath[fixedFileName], replacementData);
                     }
                 }
             }
@@ -578,7 +578,7 @@ namespace VisualGGPK
 
             OutputLine(string.Format(Settings.Strings["MainWindow_HandleDropFile_Replace"], record.GetDirectoryPath(), record.Name));
 
-            record.ReplaceContents(_ggpkPath, fileName, _content.FreeRoot);
+            _content.ReplaceFile(record, fileName);
         }
 
         /// <summary>
@@ -613,7 +613,7 @@ namespace VisualGGPK
                 }
                 OutputLine(string.Format(Settings.Strings["MainWindow_HandleDropDirectory_Replace"], fixedFileName));
 
-                _recordsByPath[fixedFileName].ReplaceContents(_ggpkPath, item, _content.FreeRoot);
+                _content.ReplaceFile(_recordsByPath[fixedFileName], item);
             }
         }
 

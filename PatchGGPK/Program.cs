@@ -12,73 +12,73 @@ using LibGGPK.Records;
 
 namespace PatchGGPK
 {
-	class Program
-	{
-		static void Output(string msg)
-		{
-			Console.Write(msg);
-		}
+    class Program
+    {
+        static void Output(string msg)
+        {
+            Console.Write(msg);
+        }
 
-		private static void OutputLine(string msg)
-		{
-			Output(msg + Environment.NewLine);
-		}
+        private static void OutputLine(string msg)
+        {
+            Output(msg + Environment.NewLine);
+        }
 
-		private static string contentGGPK = @"\Content.ggpk";
-		private static string ggpkPath = Directory.GetCurrentDirectory() + contentGGPK;
-		private static Dictionary<string, FileRecord> RecordsByPath;
-		private static GrindingGearsPackageContainer content = null;
+        private static string contentGGPK = @"\Content.ggpk";
+        private static string ggpkPath = Directory.GetCurrentDirectory() + contentGGPK;
+        private static Dictionary<string, FileRecord> RecordsByPath;
+        private static GrindingGearsPackageContainer content = null;
         private static List<string> ggpkPaths = new List<string>();
 
-		public static void Main(string[] args)
-		{
-			string[] archiveFiles;
-			if (args.Length > 0)
-			{
-				archiveFiles = args;
-			}
-			else
-			{
-				archiveFiles = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.zip");
-			}
-			if (archiveFiles.Length > 0)
-			{
-				InitGGPK();
-				foreach (string archivePath in archiveFiles)
-				{
-					InitPatchArchive(archivePath);
-				}
-			}
-			// Addons
-			if (Directory.Exists(Directory.GetCurrentDirectory() + @"\Addons\")) 
-			{ 
-				archiveFiles = Directory.GetFiles(Directory.GetCurrentDirectory()+@"\Addons\", "*.zip");
-				if (archiveFiles.Length > 0)
-				{
-					InitGGPK();
-					foreach (string archivePath in archiveFiles)
-					{
-						string msg = string.Format("Apply {0} [y/N]? ", Path.GetFileName(archivePath));
-						Output(msg);
-						ConsoleKeyInfo cki = Console.ReadKey();
-						OutputLine("");
-						if (cki.Key == ConsoleKey.Y) 
-						{
-							InitPatchArchive(archivePath);
-						}
-					}
-				}
-			}
-			OutputLine("Press any key to continue...");
-			Console.ReadKey();
-		}
+        public static void Main(string[] args)
+        {
+            string[] archiveFiles;
+            if (args.Length > 0)
+            {
+                archiveFiles = args;
+            }
+            else
+            {
+                archiveFiles = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.zip");
+            }
+            if (archiveFiles.Length > 0)
+            {
+                InitGGPK();
+                foreach (string archivePath in archiveFiles)
+                {
+                    InitPatchArchive(archivePath);
+                }
+            }
+            // Addons
+            if (Directory.Exists(Directory.GetCurrentDirectory() + @"\Addons\"))
+            {
+                archiveFiles = Directory.GetFiles(Directory.GetCurrentDirectory() + @"\Addons\", "*.zip");
+                if (archiveFiles.Length > 0)
+                {
+                    InitGGPK();
+                    foreach (string archivePath in archiveFiles)
+                    {
+                        string msg = string.Format("Apply {0} [y/N]? ", Path.GetFileName(archivePath));
+                        Output(msg);
+                        ConsoleKeyInfo cki = Console.ReadKey();
+                        OutputLine("");
+                        if (cki.Key == ConsoleKey.Y)
+                        {
+                            InitPatchArchive(archivePath);
+                        }
+                    }
+                }
+            }
+            OutputLine("Press any key to continue...");
+            Console.ReadKey();
+        }
 
-		private static void searchContentGGPK()
-		{
-			string contentGGPK = @"\Content.ggpk";
-			string ggpkPath = Directory.GetCurrentDirectory() + contentGGPK;
+        private static void searchContentGGPK()
+        {
+            string contentGGPK = @"\Content.ggpk";
+            string ggpkPath = Directory.GetCurrentDirectory() + contentGGPK;
             Microsoft.Win32.RegistryKey start = Microsoft.Win32.Registry.LocalMachine;
-			Microsoft.Win32.RegistryKey programName = start.OpenSubKey(@"SOFTWARE\Garena\POETW");
+            Microsoft.Win32.RegistryKey programName = start.OpenSubKey(@"SOFTWARE\Garena\POETW");
 
             if (File.Exists(ggpkPath))
             {
@@ -86,121 +86,121 @@ namespace PatchGGPK
                     ggpkPaths.Add(ggpkPath);
             }
 
-			// GarenaTW
-			start = Microsoft.Win32.Registry.LocalMachine;
-			programName = start.OpenSubKey(@"SOFTWARE\Wow6432Node\Garena\POETW");
-			if (programName != null)
-			{
-				string pathString = (string)programName.GetValue("Path");
-				if (pathString != string.Empty && File.Exists(pathString + contentGGPK))
-				{
-					ggpkPath = pathString + contentGGPK;
+            // GarenaTW
+            start = Microsoft.Win32.Registry.LocalMachine;
+            programName = start.OpenSubKey(@"SOFTWARE\Wow6432Node\Garena\POETW");
+            if (programName != null)
+            {
+                string pathString = (string)programName.GetValue("Path");
+                if (pathString != string.Empty && File.Exists(pathString + contentGGPK))
+                {
+                    ggpkPath = pathString + contentGGPK;
                     if (!ggpkPaths.Exists(e => e.Equals(ggpkPath)))
                         ggpkPaths.Add(ggpkPath);
-				}
-			}
+                }
+            }
             // GarenaTW reg
-			start = Microsoft.Win32.Registry.LocalMachine;
-			programName = start.OpenSubKey(@"SOFTWARE\Garena\POETW");
-			if (programName != null)
-			{
-				string pathString = (string)programName.GetValue("Path");
-				if (pathString != string.Empty && File.Exists(pathString + contentGGPK))
-				{
-					ggpkPath = pathString + contentGGPK;
+            start = Microsoft.Win32.Registry.LocalMachine;
+            programName = start.OpenSubKey(@"SOFTWARE\Garena\POETW");
+            if (programName != null)
+            {
+                string pathString = (string)programName.GetValue("Path");
+                if (pathString != string.Empty && File.Exists(pathString + contentGGPK))
+                {
+                    ggpkPath = pathString + contentGGPK;
                     if (!ggpkPaths.Exists(e => e.Equals(ggpkPath)))
                         ggpkPaths.Add(ggpkPath);
-				}
-			}
+                }
+            }
             // GarenaTW x86 path
-			if (File.Exists(@"C:\Program Files (x86)\GarenaPoETW\GameData\Apps\POETW" + contentGGPK))
-			{
-				ggpkPath = @"C:\Program Files (x86)\GarenaPoETW\GameData\Apps\POETW" + contentGGPK;
+            if (File.Exists(@"C:\Program Files (x86)\GarenaPoETW\GameData\Apps\POETW" + contentGGPK))
+            {
+                ggpkPath = @"C:\Program Files (x86)\GarenaPoETW\GameData\Apps\POETW" + contentGGPK;
                 if (!ggpkPaths.Exists(e => e.Equals(ggpkPath)))
                     ggpkPaths.Add(ggpkPath);
-			}
-			// GarenaTW 32b path
-			if (File.Exists(@"C:\Program Files\GarenaPoETW\GameData\Apps\POETW" + contentGGPK))
-			{
-				ggpkPath = @"C:\Program Files\GarenaPoETW\GameData\Apps\POETW" + contentGGPK;
+            }
+            // GarenaTW 32b path
+            if (File.Exists(@"C:\Program Files\GarenaPoETW\GameData\Apps\POETW" + contentGGPK))
+            {
+                ggpkPath = @"C:\Program Files\GarenaPoETW\GameData\Apps\POETW" + contentGGPK;
                 if (!ggpkPaths.Exists(e => e.Equals(ggpkPath)))
                     ggpkPaths.Add(ggpkPath);
-			}
-			// GGG path
-			start = Microsoft.Win32.Registry.CurrentUser;
-			programName = start.OpenSubKey(@"Software\GrindingGearGames\Path of Exile");
-			if (programName != null)
-			{
-				string pathString = (string)programName.GetValue("InstallLocation");
-				if (pathString != string.Empty && File.Exists(pathString + contentGGPK))
-				{
-					ggpkPath = pathString + contentGGPK;
+            }
+            // GGG path
+            start = Microsoft.Win32.Registry.CurrentUser;
+            programName = start.OpenSubKey(@"Software\GrindingGearGames\Path of Exile");
+            if (programName != null)
+            {
+                string pathString = (string)programName.GetValue("InstallLocation");
+                if (pathString != string.Empty && File.Exists(pathString + contentGGPK))
+                {
+                    ggpkPath = pathString + contentGGPK;
                     if (!ggpkPaths.Exists(e => e.Equals(ggpkPath)))
                         ggpkPaths.Add(ggpkPath);
-				}
-			}
-			// GGG x86
-			if (File.Exists(@"C:\Program Files (x86)\Grinding Gear Games\Path of Exile" + contentGGPK))
-			{
-				ggpkPath = @"C:\Program Files (x86)\Grinding Gear Games\Path of Exile" + contentGGPK;
+                }
+            }
+            // GGG x86
+            if (File.Exists(@"C:\Program Files (x86)\Grinding Gear Games\Path of Exile" + contentGGPK))
+            {
+                ggpkPath = @"C:\Program Files (x86)\Grinding Gear Games\Path of Exile" + contentGGPK;
                 if (!ggpkPaths.Exists(e => e.Equals(ggpkPath)))
                     ggpkPaths.Add(ggpkPath);
-			}
-			// GGG 32b
-			if (File.Exists(@"C:\Program Files\Grinding Gear Games\Path of Exile" + contentGGPK))
-			{
-				ggpkPath = @"C:\Program Files\Grinding Gear Games\Path of Exile" + contentGGPK;
+            }
+            // GGG 32b
+            if (File.Exists(@"C:\Program Files\Grinding Gear Games\Path of Exile" + contentGGPK))
+            {
+                ggpkPath = @"C:\Program Files\Grinding Gear Games\Path of Exile" + contentGGPK;
                 if (!ggpkPaths.Exists(e => e.Equals(ggpkPath)))
                     ggpkPaths.Add(ggpkPath);
-			}
-			// GGG reg
-			start = Microsoft.Win32.Registry.LocalMachine;
-			programName = start.OpenSubKey(@"SOFTWARE\Wow6432Node\Garena\PoE");
-			if (programName != null)
-			{
-				string pathString = (string)programName.GetValue("Path");
-				if (pathString != string.Empty && File.Exists(pathString + contentGGPK))
-				{
-					ggpkPath = pathString + contentGGPK;
+            }
+            // GGG reg
+            start = Microsoft.Win32.Registry.LocalMachine;
+            programName = start.OpenSubKey(@"SOFTWARE\Wow6432Node\Garena\PoE");
+            if (programName != null)
+            {
+                string pathString = (string)programName.GetValue("Path");
+                if (pathString != string.Empty && File.Exists(pathString + contentGGPK))
+                {
+                    ggpkPath = pathString + contentGGPK;
                     if (!ggpkPaths.Exists(e => e.Equals(ggpkPath)))
                         ggpkPaths.Add(ggpkPath);
-				}
-			}
-			// GareneHK reg
-			start = Microsoft.Win32.Registry.LocalMachine;
-			programName = start.OpenSubKey(@"SOFTWARE\Garena\PoE");
-			if (programName != null)
-			{
-				string pathString = (string)programName.GetValue("Path");
-				if (pathString != string.Empty && File.Exists(pathString + contentGGPK))
-				{
-					ggpkPath = pathString + contentGGPK;
+                }
+            }
+            // GareneHK reg
+            start = Microsoft.Win32.Registry.LocalMachine;
+            programName = start.OpenSubKey(@"SOFTWARE\Garena\PoE");
+            if (programName != null)
+            {
+                string pathString = (string)programName.GetValue("Path");
+                if (pathString != string.Empty && File.Exists(pathString + contentGGPK))
+                {
+                    ggpkPath = pathString + contentGGPK;
                     if (!ggpkPaths.Exists(e => e.Equals(ggpkPath)))
                         ggpkPaths.Add(ggpkPath);
-				}
-			}
-			// GarenaHK x64
-			if (File.Exists(@"C:\Program Files (x86)\GarenaPoE\GameData\Apps\PoE" + contentGGPK))
-			{
-				ggpkPath = @"C:\Program Files (x86)\GarenaPoE\GameData\Apps\PoE" + contentGGPK;
+                }
+            }
+            // GarenaHK x64
+            if (File.Exists(@"C:\Program Files (x86)\GarenaPoE\GameData\Apps\PoE" + contentGGPK))
+            {
+                ggpkPath = @"C:\Program Files (x86)\GarenaPoE\GameData\Apps\PoE" + contentGGPK;
                 if (!ggpkPaths.Exists(e => e.Equals(ggpkPath)))
                     ggpkPaths.Add(ggpkPath);
-			}
-			// GarenaHK 32b
-			if (File.Exists(@"C:\Program Files\GarenaPoE\GameData\Apps\PoE" + contentGGPK))
-			{
-				ggpkPath = @"C:\Program Files\GarenaPoE\GameData\Apps\PoE" + contentGGPK;
+            }
+            // GarenaHK 32b
+            if (File.Exists(@"C:\Program Files\GarenaPoE\GameData\Apps\PoE" + contentGGPK))
+            {
+                ggpkPath = @"C:\Program Files\GarenaPoE\GameData\Apps\PoE" + contentGGPK;
                 if (!ggpkPaths.Exists(e => e.Equals(ggpkPath)))
                     ggpkPaths.Add(ggpkPath);
-			}
-		}
+            }
+        }
 
-		private static void InitGGPK()
-		{
-			if (content != null)
-				return;
+        private static void InitGGPK()
+        {
+            if (content != null)
+                return;
 
-			searchContentGGPK();
+            searchContentGGPK();
 
             if (ggpkPaths.Count == 1)
             {
@@ -213,13 +213,13 @@ namespace PatchGGPK
                 {
                     OutputLine(string.Format("[{0}] {1}", pos++, ggpkPath2));
                 }
-                OutputLine(string.Format("Choose [0-{0}]: ", pos-1));
+                OutputLine(string.Format("Choose [0-{0}]: ", pos - 1));
                 ConsoleKeyInfo cki = Console.ReadKey();
                 OutputLine("");
                 Int32 number;
                 if (Int32.TryParse(cki.KeyChar.ToString(), out number))
                 {
-                    if (number >= 0 && number <= pos-1)
+                    if (number >= 0 && number <= pos - 1)
                         ggpkPath = ggpkPaths[number];
                 }
             }
@@ -229,37 +229,37 @@ namespace PatchGGPK
                 return;
             }
 
-			OutputLine(string.Format("Parsing {0}", ggpkPath));
+            OutputLine(string.Format("Parsing {0}", ggpkPath));
 
-			content = new GrindingGearsPackageContainer();
-			content.Read(ggpkPath, Output);
+            content = new GrindingGearsPackageContainer();
+            content.Read(ggpkPath, Output);
 
-			RecordsByPath = new Dictionary<string, FileRecord>(content.RecordOffsets.Count);
-			DirectoryTreeNode.TraverseTreePostorder(content.DirectoryRoot, null, n => RecordsByPath.Add(n.GetDirectoryPath() + n.Name, n as FileRecord));
-		}
+            RecordsByPath = new Dictionary<string, FileRecord>(content.RecordOffsets.Count);
+            DirectoryTreeNode.TraverseTreePostorder(content.DirectoryRoot, null, n => RecordsByPath.Add(n.GetDirectoryPath() + n.Name, n as FileRecord));
+        }
 
-		private static void InitPatchArchive(string archivePath)
-		{
-			if (content != null)
-			{ 
-				if (content.IsReadOnly)
-				{
-					OutputLine("Content.ggpk is Read Only.");
-				}
-				else if (File.Exists(archivePath) && Path.GetExtension(archivePath).ToLower() == ".zip")
-				{
-					HandlePatchArchive(archivePath);
-				}
-			}
-		}
+        private static void InitPatchArchive(string archivePath)
+        {
+            if (content != null)
+            {
+                if (content.IsReadOnly)
+                {
+                    OutputLine("Content.ggpk is Read Only.");
+                }
+                else if (File.Exists(archivePath) && Path.GetExtension(archivePath).ToLower() == ".zip")
+                {
+                    HandlePatchArchive(archivePath);
+                }
+            }
+        }
 
-		private static void HandlePatchArchive(string archivePath)
-		{
-			using (ZipFile zipFile = new ZipFile(archivePath))
-			{
-				bool VersionCheck = false;
-				bool NeedVersionCheck = false;
-				OutputLine(string.Format("Archive {0}", archivePath));
+        private static void HandlePatchArchive(string archivePath)
+        {
+            using (ZipFile zipFile = new ZipFile(archivePath))
+            {
+                bool VersionCheck = false;
+                bool NeedVersionCheck = false;
+                OutputLine(string.Format("Archive {0}", archivePath));
                 /*
 				foreach (var item in zipFile.Entries)
 				{
@@ -297,40 +297,40 @@ namespace PatchGGPK
 				}
                 */
 
-				foreach (var item in zipFile.Entries)
-				{
-					if (item.IsDirectory)
-					{
-						continue;
-					}
-					if (item.FileName.Equals("version.txt"))
-					{
-						continue;
-					}
+                foreach (var item in zipFile.Entries)
+                {
+                    if (item.IsDirectory)
+                    {
+                        continue;
+                    }
+                    if (item.FileName.Equals("version.txt"))
+                    {
+                        continue;
+                    }
 
                     string fixedFileName = "ROOT" + Path.DirectorySeparatorChar + item.FileName;
-					if (Path.DirectorySeparatorChar != '/')
-					{
-						fixedFileName = fixedFileName.Replace('/', Path.DirectorySeparatorChar);
-					}
+                    if (Path.DirectorySeparatorChar != '/')
+                    {
+                        fixedFileName = fixedFileName.Replace('/', Path.DirectorySeparatorChar);
+                    }
 
-					if (!RecordsByPath.ContainsKey(fixedFileName))
-					{
-						OutputLine(string.Format("Failed {0}", fixedFileName));
-						continue;
-					}
-					OutputLine(string.Format("Replace {0}", fixedFileName));
+                    if (!RecordsByPath.ContainsKey(fixedFileName))
+                    {
+                        OutputLine(string.Format("Failed {0}", fixedFileName));
+                        continue;
+                    }
+                    OutputLine(string.Format("Replace {0}", fixedFileName));
 
-					using (var reader = item.OpenReader())
-					{
-						byte[] replacementData = new byte[item.UncompressedSize];
-						reader.Read(replacementData, 0, replacementData.Length);
+                    using (var reader = item.OpenReader())
+                    {
+                        byte[] replacementData = new byte[item.UncompressedSize];
+                        reader.Read(replacementData, 0, replacementData.Length);
 
-						RecordsByPath[fixedFileName].ReplaceContents(ggpkPath, replacementData, content.FreeRoot);
-					}
-				}
-				OutputLine("Content.ggpk is Fine.");
-			}
-		}
-	}
+                        content.ReplaceFile(RecordsByPath[fixedFileName], replacementData);
+                    }
+                }
+                OutputLine("Content.ggpk is Fine.");
+            }
+        }
+    }
 }

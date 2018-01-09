@@ -273,8 +273,8 @@ namespace VPatchGGPK
                     {
                         var replacementData = new byte[item.UncompressedSize];
                         reader.Read(replacementData, 0, replacementData.Length);
-
-                        _recordsByPath[fixedFileName].ReplaceContents(textBoxContentGGPK.Text, replacementData, content.FreeRoot);
+                                                
+                        content.ReplaceFile(_recordsByPath[fixedFileName], replacementData);
                     }
                 }
                 OutputLine("Content.ggpk is Fine.");

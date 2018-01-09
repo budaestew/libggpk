@@ -120,6 +120,22 @@ namespace LibGGPK.Records
         /// Directory this file resides in
         /// </summary>
         public DirectoryTreeNode ContainingDirectory;
+        /// <summary>
+        /// Raw file data
+        /// </summary>
+        private byte[] _data;
+        public byte[] Data {
+            get
+            {
+                return _data;
+            }
+            set {
+                _data = value;
+                DataLength = _data.Length;
+                Length = (uint)(4 + 4 + 4 + 32 + Name.Length * 2 + 2 + DataLength);
+                Hash = SHA256.Create().ComputeHash(_data);
+            }
+        }
 
         public FileRecord(uint length, BinaryReader br)
         {
@@ -148,7 +164,7 @@ namespace LibGGPK.Records
         public override void Write(BinaryWriter bw, Dictionary<long, long> changedOffsets)
         {
             var currentOffset = bw.BaseStream.Position;
-            if (currentOffset != RecordBegin)
+            if (changedOffsets != null && currentOffset != RecordBegin)
                 changedOffsets[RecordBegin] = currentOffset;
 
             bw.Write(Length);
@@ -160,6 +176,17 @@ namespace LibGGPK.Records
 
             // IMPORTANT: FileRecord's actual file content written not here
         }
+
+        public void WriteData(BinaryWriter bw)
+		{
+			RecordBegin = bw.BaseStream.Position;
+			
+			Write(bw, null);
+
+			DataBegin = bw.BaseStream.Position;
+			
+			bw.Write(Data);
+		}
 
         /// <summary>
         /// Extracts this file to a temporary file, path of this temporary file is returned
@@ -274,50 +301,7 @@ namespace LibGGPK.Records
             ggpkFileStream.Seek(freeRecordRoot.Last.Value.RecordBegin + 8, SeekOrigin.Begin);
             ggpkFileStream.Write(BitConverter.GetBytes(RecordBegin), 0, 8);
         }
-
-        public void ReplaceContents(string ggpkPath, byte[] replacmentData, LinkedList<FreeRecord> freeRecordRoot)
-        {
-            using (var ggpkFileStream = File.Open(ggpkPath, FileMode.Open))
-            {
-                MarkAsFree(ggpkFileStream, freeRecordRoot);
-
-                ggpkFileStream.Seek(0, SeekOrigin.End);
-
-                // Update and write new record data to end of GGPK file
-                RecordBegin = ggpkFileStream.Position;
-                Length = (uint)(Length - DataLength + replacmentData.Length);
-
-                // Generate the new Hash
-                var sha256 = SHA256Managed.Create();
-                Hash = sha256.ComputeHash(replacmentData);
-
-                var bw = new BinaryWriter(ggpkFileStream);
-                bw.Write(Length);
-                bw.Write(Tag.ToCharArray(0, 4));
-                bw.Write(Name.Length + 1);
-                bw.Write(Hash);
-                bw.Write(Encoding.Unicode.GetBytes(Name + "\0"));
-
-                DataBegin = bw.BaseStream.Position;
-                DataLength = replacmentData.Length;
-
-                bw.Write(replacmentData);
-            }
-
-            ContainingDirectory.Record.UpdateOffset(ggpkPath, GetNameHash(), RecordBegin);
-        }
-
-        /// <summary>
-        /// Replaces the contents of this file with the data from the specified file on disk.
-        /// </summary>
-        /// <param name="ggpkPath">Path of pack file that contains this record</param>
-        /// <param name="replacmentPath">Path to file containing replacement data</param>
-        /// <param name="freeRecordRoot">Root of the Free record list</param>
-        public void ReplaceContents(string ggpkPath, string replacmentPath, LinkedList<FreeRecord> freeRecordRoot)
-        {
-            ReplaceContents(ggpkPath, File.ReadAllBytes(replacmentPath), freeRecordRoot);
-        }
-
+                
         public override string ToString()
         {
             return Name;

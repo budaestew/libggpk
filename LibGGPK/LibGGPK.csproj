@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DirectoryTreeNode.cs" />
+    <Compile Include="FreeRecordManager.cs" />
     <Compile Include="Records\BaseRecord.cs" />
     <Compile Include="GrindingGearsPackageContainer.cs" />
     <Compile Include="Records\DirectoryRecord.cs" />
